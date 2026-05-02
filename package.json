@@ -1,0 +1,32 @@
+{
+  "name": "x-wanda-plaza-plugin",
+  "version": "0.1.0",
+  "description": "推特隐藏回复快捷插件 - 在推特评论区添加隐藏回复快捷按钮",
+  "private": true,
+  "scripts": {
+    "dev": "echo '开发模式：在 Chrome 中加载扩展，修改文件后刷新即可'",
+    "test": "echo '运行测试...'",
+    "lint": "echo '代码检查...'",
+    "build": "echo '构建扩展包...'"
+  },
+  "keywords": [
+    "twitter",
+    "x.com",
+    "plugin",
+    "extension",
+    "hide-reply",
+    "chrome-extension",
+    "userscript",
+    "tampermonkey"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/X-Wanda-Plaza-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/X-Wanda-Plaza-plugin/issues"
+  },
+  "homepage": "https://github.com/your-username/X-Wanda-Plaza-plugin#readme"
+}

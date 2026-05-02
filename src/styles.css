@@ -1,0 +1,114 @@
+/**
+ * 推特隐藏回复快捷按钮样式
+ * 保持与推特原生按钮一致的视觉风格
+ */
+
+.hide-reply-button-wrapper {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
+
+.hide-reply-button {
+  /* 继承推特按钮基础样式 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+  line-height: 1;
+  
+  /* 尺寸与间距 */
+  width: 36px;
+  height: 36px;
+  margin-right: 4px;
+  
+  /* 圆形按钮效果 */
+  border-radius: 50%;
+  
+  /* 颜色 */
+  color: rgb(83, 100, 113);
+  
+  /* 过渡效果 */
+  transition: all 0.2s ease-in-out;
+  
+  /* 移除默认焦点样式 */
+  outline: none;
+}
+
+.hide-reply-button:hover {
+  /* 悬停时的背景色（推特风格：亮蓝色背景） */
+  background-color: rgba(29, 155, 240, 0.1);
+  color: rgb(29, 155, 240);
+}
+
+.hide-reply-button:active {
+  /* 按下时的背景色 */
+  background-color: rgba(29, 155, 240, 0.2);
+}
+
+.hide-reply-button:focus-visible {
+  /* 键盘焦点样式 */
+  background-color: rgba(29, 155, 240, 0.1);
+  outline: 2px solid rgba(29, 155, 240, 0.3);
+  outline-offset: -2px;
+}
+
+.hide-reply-button-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.hide-reply-icon {
+  /* 图标样式 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  
+  /* 文字渲染优化 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 移动设备适配 */
+@media (max-width: 500px) {
+  .hide-reply-button {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* 亮色主题 */
+@media (prefers-color-scheme: light) {
+  .hide-reply-button {
+    color: rgb(83, 100, 113);
+  }
+  
+  .hide-reply-button:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+    color: rgb(29, 155, 240);
+  }
+}
+
+/* 暗色主题 */
+@media (prefers-color-scheme: dark) {
+  .hide-reply-button {
+    color: rgb(139, 152, 165);
+  }
+  
+  .hide-reply-button:hover {
+    background-color: rgba(29, 155, 240, 0.1);
+    color: rgb(29, 155, 240);
+  }
+}
