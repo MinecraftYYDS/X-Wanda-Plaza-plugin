@@ -15,5 +15,8 @@
       "css": ["src/styles.css"],
       "run_at": "document_start"
     }
-  ]
+  ],
+  "icons": {
+    "128": "assets/icon.svg"
+  }
 }
