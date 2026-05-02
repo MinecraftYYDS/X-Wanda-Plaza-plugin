@@ -75,7 +75,7 @@
       hideReplyButton.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        triggerHideReply(moreButton);
+        triggerHideReply(moreButton, hideReplyButton);
       });
 
       buttonWrapper.appendChild(hideReplyButton);
@@ -90,27 +90,38 @@
 
   /**
    * 触发隐藏回复功能
+   * 首次点击时打开菜单检查是否有"隐藏回复"选项：
+   *   - 有：点击执行
+   *   - 无：关闭菜单，隐藏快捷按钮（此推文不支持隐藏回复）
    * @param {HTMLElement} moreButton - 更多菜单按钮
+   * @param {HTMLElement} ourButton  - 我们注入的快捷按钮
    */
-  function triggerHideReply(moreButton) {
+  function triggerHideReply(moreButton, ourButton) {
     try {
-      // 1. 点击"更多"按钮打开菜单
       moreButton.click();
       log('已点击"更多"按钮');
 
-      // 2. 等待菜单渲染后查找隐藏回复选项
-      // 使用 requestAnimationFrame 而不是 setTimeout 以适应 React 更新
       requestAnimationFrame(() => {
         setTimeout(() => {
           const hideReplyMenuItem = findHideReplyMenuItem();
-          
+
           if (hideReplyMenuItem) {
             log('找到隐藏回复菜单项，准备点击');
             hideReplyMenuItem.click();
           } else {
-            log('未找到隐藏回复菜单项');
+            log('未找到隐藏回复菜单项，关闭菜单并移除快捷按钮');
+            // 关闭菜单（按 Escape）
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+            // 从 DOM 中移除我们注入的按钮容器
+            const wrapper = ourButton.closest('.hide-reply-button-wrapper');
+            if (wrapper) wrapper.remove();
+            // 同时清除行容器上的标记，避免该行被认为已注入
+            if (moreButton) {
+              const result = findActionRow(moreButton);
+              if (result) delete result.actionRow.dataset.hideReplyInjected;
+            }
           }
-        }, 100);
+        }, 200);
       });
     } catch (err) {
       log('触发隐藏回复时出错', err);
