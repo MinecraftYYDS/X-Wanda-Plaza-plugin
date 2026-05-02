@@ -8,10 +8,20 @@
 
   const DEBUG = false;
 
+  // 当前是否启用（默认开）
+  let pluginEnabled = true;
+
   function log(msg, data) {
     if (DEBUG) {
       console.log(`[HideReply] ${msg}`, data || '');
     }
+  }
+
+  /** 显示或隐藏所有已注入的快捷按钮 */
+  function applyVisibility(enabled) {
+    document.querySelectorAll('.hide-reply-button-wrapper').forEach(el => {
+      el.style.display = enabled ? '' : 'none';
+    });
   }
 
   /**
@@ -170,6 +180,8 @@
       for (const btn of moreButtons) {
         injectHideReplyButton(btn);
       }
+      // 注入后根据当前开关状态更新可见性
+      applyVisibility(pluginEnabled);
       log(`处理了 ${moreButtons.length} 个评论`);
     } catch (err) {
       log('处理评论时出错', err);
@@ -220,16 +232,28 @@
    * 主初始化函数
    */
   function init() {
-    // 页面初始加载时处理已有的评论
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
+    // 读取已保存的开关状态
+    chrome.storage.sync.get({ enabled: true }, ({ enabled }) => {
+      pluginEnabled = enabled;
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          processComments();
+          initMutationObserver();
+        });
+      } else {
         processComments();
         initMutationObserver();
-      });
-    } else {
-      processComments();
-      initMutationObserver();
-    }
+      }
+    });
+
+    // 监听来自 popup 的开关消息
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === 'SET_ENABLED') {
+        pluginEnabled = msg.enabled;
+        applyVisibility(pluginEnabled);
+      }
+    });
 
     // 监听 SPA 路由变化（pushState 和 popstate）
     const originalPushState = history.pushState;
