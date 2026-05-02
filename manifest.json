@@ -3,11 +3,17 @@
   "name": "推特隐藏回复快捷插件",
   "version": "0.1.0",
   "description": "在推特评论区添加隐藏回复快捷按钮，点击即可隐藏不想看的评论",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "host_permissions": [
     "*://twitter.com/*",
     "*://x.com/*"
   ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "128": "assets/icon.svg"
+    }
+  },
   "content_scripts": [
     {
       "matches": ["*://twitter.com/*", "*://x.com/*"],

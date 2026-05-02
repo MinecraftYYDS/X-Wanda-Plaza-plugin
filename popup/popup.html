@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>隐藏回复插件</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 240px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fff;
+      color: #0f1419;
+    }
+
+    .header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid #eff3f4;
+    }
+
+    .header h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f1419;
+    }
+
+    .header p {
+      font-size: 12px;
+      color: #536471;
+      margin-top: 2px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+    }
+
+    .row-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #0f1419;
+    }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #cfd9de;
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+
+    input:checked + .slider {
+      background: #1d9bf0;
+    }
+
+    input:checked + .slider::before {
+      transform: translateX(20px);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>隐藏回复快捷按钮</h1>
+    <p>Twitter / X.com</p>
+  </div>
+  <div class="row">
+    <span class="row-label">显示快捷按钮</span>
+    <label class="toggle">
+      <input type="checkbox" id="toggle" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
