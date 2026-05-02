@@ -7,7 +7,7 @@
   'use strict';
 
   const DEBUG = false;
-  
+
   function log(msg, data) {
     if (DEBUG) {
       console.log(`[HideReply] ${msg}`, data || '');
@@ -15,32 +15,48 @@
   }
 
   /**
-   * 在指定容器前面插入隐藏回复快捷按钮
-   * @param {HTMLElement} actionContainer - 包含 Grok 操作和更多菜单的容器
+   * 从 caret 按钮出发，向上寻找同时包含 Grok 按钮的行容器
+   * 返回 { actionRow, grokWrapper } 或 null
    */
-  function injectHideReplyButton(actionContainer) {
-    // 检查是否已经注入过
-    if (actionContainer.querySelector('[data-hide-reply-injected]')) {
-      return;
+  function findActionRow(moreButton) {
+    let el = moreButton.parentElement;
+    while (el && el !== document.body) {
+      const grokButton = el.querySelector('button[aria-label="Grok 操作"], button[aria-label*="Grok"]');
+      if (grokButton) {
+        // 找到 grokButton 在 el 下的直接子元素包装层
+        let grokWrapper = grokButton;
+        while (grokWrapper.parentElement !== el) {
+          grokWrapper = grokWrapper.parentElement;
+          if (!grokWrapper) return null;
+        }
+        return { actionRow: el, grokWrapper };
+      }
+      el = el.parentElement;
     }
+    return null;
+  }
+
+  /**
+   * 在 Grok 操作按钮前面注入隐藏回复快捷按钮
+   * @param {HTMLElement} moreButton - data-testid="caret" 按钮
+   */
+  function injectHideReplyButton(moreButton) {
+    // 防止重复注入（标记在 moreButton 上）
+    if (moreButton.dataset.hideReplyInjected) return;
+    moreButton.dataset.hideReplyInjected = 'true';
 
     try {
-      // 查找"更多"菜单按钮
-      const moreButton = actionContainer.querySelector('[data-testid="caret"]') ||
-                        actionContainer.querySelector('[aria-label*="更多"]') ||
-                        actionContainer.querySelector('button[aria-expanded]');
-      
-      if (!moreButton) {
-        log('未找到"更多"按钮');
+      const result = findActionRow(moreButton);
+      if (!result) {
+        log('未找到包含 Grok 按钮的行容器');
         return;
       }
+      const { actionRow, grokWrapper } = result;
 
       // 创建隐藏回复快捷按钮容器
       const buttonWrapper = document.createElement('div');
-      buttonWrapper.setAttribute('data-hide-reply-injected', 'true');
       buttonWrapper.className = 'hide-reply-button-wrapper';
 
-      // 创建按钮 (复制"更多"按钮的结构，保持一致性)
       const hideReplyButton = document.createElement('button');
       hideReplyButton.type = 'button';
       hideReplyButton.className = 'hide-reply-button';
@@ -48,29 +64,25 @@
       hideReplyButton.setAttribute('title', '隐藏这条回复');
       hideReplyButton.setAttribute('data-hide-reply-action', 'true');
 
-      // 创建按钮内部结构（保持推特的样式一致）
       const buttonInner = document.createElement('div');
       buttonInner.className = 'hide-reply-button-inner';
-      
-      // 添加简单的图标（使用文本"隐")
-      const iconSpan = document.createElement('span');
-      iconSpan.className = 'hide-reply-icon';
-      iconSpan.textContent = '隐';
-      
-      buttonInner.appendChild(iconSpan);
+
+      // 使用传入的 SVG 图标
+      buttonInner.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;fill:currentColor;"><g><path d="M19 14h2v3h-2v-3zM3 14H1v3h2v-3zm.5 7c-.276 0-.5-.225-.5-.5V19H1v1.5C1 21.879 2.122 23 3.5 23H5v-2H3.5zM10 5V3H7v2h3zm-7 .5c0-.275.224-.5.5-.5H5V3H3.5C2.122 3 1 4.121 1 5.5V7h2V5.5zM12 21v2h3v-2h-3zm-5 0v2h3v-2H7zm12-.5c0 .275-.224.5-.5.5H17v2h1.5c1.378 0 2.5-1.121 2.5-2.5V19h-2v1.5zM3 9H1v3h2V9zm3 9h5v-2H6v2zM18-.1c3.364 0 6.1 2.736 6.1 6.1s-2.736 6.1-6.1 6.1-6.1-2.736-6.1-6.1S14.636-.1 18-.1zm0 2c-2.261 0-4.1 1.839-4.1 4.1s1.839 4.1 4.1 4.1 4.1-1.839 4.1-4.1-1.839-4.1-4.1-4.1zm.5 3.1H15v2h6V5h-2.5zM6 10h4V8H6v2zm0 4h7v-2H6v2z"/></g></svg>`;
+
       hideReplyButton.appendChild(buttonInner);
 
-      // 点击事件处理
       hideReplyButton.addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
         triggerHideReply(moreButton);
       });
 
-      // 插入到"更多"按钮之前
-      moreButton.parentElement.insertBefore(buttonWrapper, moreButton);
       buttonWrapper.appendChild(hideReplyButton);
+      // 插入到 Grok 按钮包装层之前
+      actionRow.insertBefore(buttonWrapper, grokWrapper);
 
-      log('已注入隐藏回复按钮', actionContainer);
+      log('已注入隐藏回复按钮');
     } catch (err) {
       log('注入按钮时出错', err);
     }
@@ -139,57 +151,15 @@
   }
 
   /**
-   * 检查是否应该在此评论上注入按钮
-   * 排除用户自己的评论
-   * @param {HTMLElement} container - 评论容器
-   * @returns {boolean}
-   */
-  function shouldInjectButton(container) {
-    // 检查容器是否包含 Grok 操作和更多菜单（这表示是他人的评论）
-    const hasMoreButton = container.querySelector('[data-testid="caret"]') ||
-                         container.querySelector('button[aria-expanded]');
-    
-    if (!hasMoreButton) {
-      return false;
-    }
-
-    // 检查是否有隐藏回复选项
-    // 只有非自己的评论才会在菜单中显示隐藏回复选项
-    // 这里我们先注入，然后在点击时验证
-    
-    return true;
-  }
-
-  /**
-   * 处理 DOM 中的评论容器
-   * 查找所有可能的评论操作区域并注入按钮
+   * 处理 DOM 中的所有 caret 按钮，逐一注入快捷按钮
    */
   function processComments() {
     try {
-      // 查找所有包含"更多"操作按钮的容器
-      // 推特的评论区通常有这样的结构：
-      // <div data-testid="tweet"> ... <div>...<button data-testid="caret">...</button></div>...</div>
-      
-      const actionContainers = document.querySelectorAll('div:has(> button[data-testid="caret"])');
-      
-      for (const container of actionContainers) {
-        if (shouldInjectButton(container)) {
-          injectHideReplyButton(container);
-        }
+      const moreButtons = document.querySelectorAll('button[data-testid="caret"]:not([data-hide-reply-injected])');
+      for (const btn of moreButtons) {
+        injectHideReplyButton(btn);
       }
-
-      // 备选方案：直接查找所有"更多"按钮
-      if (actionContainers.length === 0) {
-        const moreButtons = document.querySelectorAll('button[data-testid="caret"]');
-        for (const button of moreButtons) {
-          const actionContainer = button.parentElement;
-          if (actionContainer && shouldInjectButton(actionContainer)) {
-            injectHideReplyButton(actionContainer);
-          }
-        }
-      }
-
-      log(`处理了 ${actionContainers.length} 个评论容器`);
+      log(`处理了 ${moreButtons.length} 个评论`);
     } catch (err) {
       log('处理评论时出错', err);
     }
@@ -204,33 +174,27 @@
       let shouldProcess = false;
 
       for (const mutation of mutations) {
-        // 检查是否有新的节点被添加
         if (mutation.type === 'childList') {
           for (const node of mutation.addedNodes) {
-            if (node.nodeType === 1) { // Element node
-              // 检查是否是评论容器或包含"更多"按钮
-              if (node.querySelector && (node.querySelector('[data-testid="caret"]') ||
-                  (node.tagName === 'BUTTON' && node.getAttribute('data-testid') === 'caret'))) {
-                shouldProcess = true;
-                break;
-              }
+            if (node.nodeType !== 1) continue;
+            // 节点本身是 caret 按钮，或者节点内部包含 caret 按钮
+            const isCaret = node.matches && node.matches('button[data-testid="caret"]');
+            const hasCaret = node.querySelector && node.querySelector('button[data-testid="caret"]');
+            if (isCaret || hasCaret) {
+              shouldProcess = true;
+              break;
             }
           }
         }
-
         if (shouldProcess) break;
       }
 
       if (shouldProcess) {
-        // 使用防抖，避免频繁处理
         clearTimeout(initMutationObserver.debounceTimer);
-        initMutationObserver.debounceTimer = setTimeout(() => {
-          processComments();
-        }, 300);
+        initMutationObserver.debounceTimer = setTimeout(processComments, 300);
       }
     });
 
-    // 配置观察器
     observer.observe(document.documentElement, {
       childList: true,
       subtree: true,
@@ -256,14 +220,13 @@
       initMutationObserver();
     }
 
-    // 监听页面变化（SPA 路由变化）
+    // 监听 SPA 路由变化（pushState 和 popstate）
     const originalPushState = history.pushState;
     history.pushState = function(...args) {
       originalPushState.apply(this, args);
-      setTimeout(() => {
-        processComments();
-      }, 500);
+      setTimeout(processComments, 800);
     };
+    window.addEventListener('popstate', () => setTimeout(processComments, 800));
 
     log('插件已初始化');
   }

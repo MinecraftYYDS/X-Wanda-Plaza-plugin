@@ -13,7 +13,7 @@
       "matches": ["*://twitter.com/*", "*://x.com/*"],
       "js": ["src/content.js"],
       "css": ["src/styles.css"],
-      "run_at": "document_start"
+      "run_at": "document_idle"
     }
   ],
   "icons": {
