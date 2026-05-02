@@ -41,10 +41,6 @@
    * @param {HTMLElement} moreButton - data-testid="caret" 按钮
    */
   function injectHideReplyButton(moreButton) {
-    // 防止重复注入（标记在 moreButton 上）
-    if (moreButton.dataset.hideReplyInjected) return;
-    moreButton.dataset.hideReplyInjected = 'true';
-
     try {
       const result = findActionRow(moreButton);
       if (!result) {
@@ -52,6 +48,10 @@
         return;
       }
       const { actionRow, grokWrapper } = result;
+
+      // 防止重复注入（标记在 actionRow 上，防止同一行多个 caret 按钮重复插入）
+      if (actionRow.dataset.hideReplyInjected) return;
+      actionRow.dataset.hideReplyInjected = 'true';
 
       // 创建隐藏回复快捷按钮容器
       const buttonWrapper = document.createElement('div');
@@ -155,7 +155,7 @@
    */
   function processComments() {
     try {
-      const moreButtons = document.querySelectorAll('button[data-testid="caret"]:not([data-hide-reply-injected])');
+      const moreButtons = document.querySelectorAll('button[data-testid="caret"]');
       for (const btn of moreButtons) {
         injectHideReplyButton(btn);
       }
